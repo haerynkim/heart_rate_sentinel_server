@@ -19,6 +19,7 @@ def parse(dict, str):
     """
     return dict[str]
 
+
 def add_to_dictionary(newdict, key, val):
     """ Adds the given key and value pair into a dictionary called dict.
 
@@ -30,6 +31,7 @@ def add_to_dictionary(newdict, key, val):
     newdict[key] = val
     return newdict
 
+
 @app.route("/api/new_patient", methods=["POST"])
 def post_new_patient():
     """
@@ -40,11 +42,31 @@ def post_new_patient():
     :return: jsonified dictionary
     """
     patient = request.get_json()  # parse through the request from client passed as json dictionary
-    #Do I need to declare s as a new dictionary item before I call it?
+    try: # raise a validation error if a key is not found in the request
+        validate_new_patient_request(patient)
+    except ValidationError as inst:
+        return jsonify({"Error message": inst.message}), 500
+
+    s = dict()
     add_to_dictionary(s, "patient_id", parse(patient, "patient_id"))  # write code here that is
     add_to_dictionary(s, "attending_email", parse(patient, "attending_email"))
     add_to_dictionary(s, "user_age", parse(patient, "user_age"))
-    return jsonify(s), 200 # output status code reflecting that an entity has been posted as result of the function
+    return jsonify(s), 200  # output status code reflecting that an entity has been posted as result of the function
+
+NEW_PATIENT_KEYS = [
+    "patient_id",
+    "attending_email",
+    "user_age"
+]
+
+class ValidationError(Exception):
+    def __init__(self, message):
+        self.message = message
+
+def validate_new_patient_request(patient_req):
+    for key in NEW_PATIENT_KEYS:
+        if key not in patient_req.keys():
+            raise ValidationError("Key '{0}' not present in request".format(key))
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1") # IP needs swapped out if running on VM.
+    app.run(host="127.0.0.1") # IP needs swapped out if running on VM

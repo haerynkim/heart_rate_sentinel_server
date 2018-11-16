@@ -128,7 +128,7 @@ def post_heart_rate():
         print(db)
         return jsonify(h), 200
     else:
-        return "Patient ID does not exist. Post new patient first.", 400
+        return "Patient ID does not exist. Post new patient first.", 300
 
 
 HEART_RATE_KEYS = [
@@ -164,7 +164,7 @@ def get_status(patient_id):
         else:
             return "Patient is not tachycardic as of {0}.".format(latesttime.strftime('%Y-%m-%d %H:%M:%S'))
     else:
-        return "Patient ID does not exist. Post new patient and heart rate info first."
+        return "Patient ID does not exist. Post new patient and heart rate info first.", 300
 
 
 def is_tachycardic(age, heartrate):
@@ -192,6 +192,57 @@ def is_tachycardic(age, heartrate):
     else:
         return False
 
+
+@app.route("/api/heart_rate/<patient_id>", methods=["GET"])
+def get_hr(patient_id):
+ global db
+ all_hr = []
+ for i in db:
+     if i["patient_id"] != patient_id:
+         continue
+ if i["patient_id"] == patient_id:
+     if len(i["heart_rate"]) != 0:  # there is previous heart rate information stored inside list
+         patient_hrs, avg_hr = compile_avg(i["heart_rate"], all_hr)
+         return jsonify(patient_hrs)
+     else:  # there is no previous heart rate information stored inside list
+         return "There is no heart rate data for Patient {0}. Post heart rate info first".format(patient_id), 300
+ else:
+     return "Patient ID does not exist. Post new patient and heart rate info first.", 300
+
+
+def compile_avg(list_of_dicts, new_list):
+    """
+    This takes all the HR key's values in the dictionaries inside list_of_dicts and appends them to a new_list. Then it
+    computes and returns the average.
+
+    :param list_of_dicts: list
+    :param new_list: list
+    :return: list, float
+    """
+    for i in list_of_dicts:  # iterates through all the dictionaries with key "HR
+        new_list.append(i["HR"])
+        if len(new_list) == 1:
+            avg_new_list = i["HR"]
+        else:
+            avg_new_list = sum(new_list) / len(new_list)
+    return new_list, avg_new_list
+
+
+@app.route("/api/heart_rate/average/<patient_id>", methods=["GET"])
+def get_hr_average(patient_id):
+    global db
+    all_hr = []
+    for i in db:
+        if i["patient_id"] != patient_id:
+            continue
+    if i["patient_id"] == patient_id:
+        if len(i["heart_rate"]) != 0:  # there is previous heart rate information stored inside list
+            patient_hrs, avg_hr = compile_avg(i["heart_rate"], all_hr)
+            return jsonify(avg_hr)
+        else:  # there is no previous heart rate information stored inside list
+            return "There is no heart rate data for Patient {0}. Post heart rate info first".format(patient_id), 300
+    else:
+        return "Patient ID does not exist. Post new patient and heart rate info first.", 300
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1")  # IP needs swapped out if running on VM

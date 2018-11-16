@@ -4,6 +4,7 @@
 # Written by Haeryn Kim
 from flask import Flask, jsonify, request
 from datetime import datetime
+from time import strftime
 
 app = Flask(__name__)
 
@@ -60,8 +61,9 @@ def add_to_database(dictionary, database):
         else:
             print("Patient {0} already exists in the database. No new information added.".format(i["patient_id"]))
     else:
-         database.append(dictionary)
-         print("Patient {0}'s information was added to the database.".format(dictionary["patient_id"]))
+        database.append(dictionary)
+        print("Patient {0}'s information was added to the database.".format(dictionary["patient_id"]))
+
 
 @app.route("/api/new_patient", methods=["POST"])
 def post_new_patient():
@@ -128,6 +130,7 @@ def post_heart_rate():
     else:
         return "Patient ID does not exist. Post new patient first.", 400
 
+
 HEART_RATE_KEYS = [
     "patient_id",
     "heart_rate"
@@ -144,6 +147,50 @@ def validate_heart_rate_request(patient_req):
 def servertest():
     return "server active"
 
+
+@app.route("/api/status/<patient_id>", methods=["GET"])
+def get_status(patient_id):
+    global db
+    for i in db:
+        if i["patient_id"] != patient_id:
+            continue
+    if i["patient_id"] == patient_id:
+        HRdic = i["heart_rate"][-1]  # returns dictionary of storing latest HR and time
+        latestHR = HRdic["HR"]
+        latesttime = HRdic["Time"]  # currently returns datetime.datetime(info) variable
+        print(type(latesttime))
+        if is_tachycardic(i["user_age"], latestHR):
+            return "Patient is tachycardic as of {0}.".format(latesttime.strftime('%Y-%m-%d %H:%M:%S'))
+        else:
+            return "Patient is not tachycardic as of {0}.".format(latesttime.strftime('%Y-%m-%d %H:%M:%S'))
+    else:
+        return "Patient ID does not exist. Post new patient and heart rate info first."
+
+
+def is_tachycardic(age, heartrate):
+    """
+    Returns True if heart rate is tachycardic for that patient's age.
+
+    :param age: int
+    :param heartrate: int
+    :return: boolean
+    """
+    if (0 <= age <= 1) and heartrate > 159:
+        return True
+    if (1 < age <= 2) and heartrate > 179:
+        return True
+    if (2 < age <= 4) and heartrate > 137:
+        return True
+    if (4 < age <= 7) and heartrate > 133:
+        return True
+    if (7 < age <= 11) and heartrate > 130:
+        return True
+    if (11 < age <= 15) and heartrate > 119:
+        return True
+    if age > 15 and heartrate > 100:
+        return True
+    else:
+        return False
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1")  # IP needs swapped out if running on VM

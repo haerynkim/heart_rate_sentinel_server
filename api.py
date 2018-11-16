@@ -45,7 +45,6 @@ def add_to_database(dictionary, database):
     :param database: list of dictionaries
     :return:
     """
-    global db
     HRdata = dict()
     for i in database:
         if i["patient_id"] != dictionary["patient_id"]:

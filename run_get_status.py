@@ -6,7 +6,7 @@ def get_patient_status():
 
     :return:
     """
-    r = requests.get("http://127.0.0.1:5000/api/status/2")
+    r = requests.get("http://127.0.0.1:5000/api/status/32")
     print(r.text)
 
 

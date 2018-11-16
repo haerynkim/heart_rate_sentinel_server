@@ -192,5 +192,6 @@ def is_tachycardic(age, heartrate):
     else:
         return False
 
+
 if __name__ == "__main__":
     app.run(host="127.0.0.1")  # IP needs swapped out if running on VM

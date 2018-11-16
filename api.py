@@ -49,21 +49,19 @@ def add_to_database(dictionary, database):
     for i in database:
         if i["patient_id"] != dictionary["patient_id"]:
             continue
-        if i["patient_id"] == dictionary["patient_id"]:
-            # print("same patient exist in db")
-            if "heart_rate" in list(dictionary.keys()):
-                HRdata["HR"] = dictionary["heart_rate"]
-                HRdata["Time"] = datetime.now()
-                i["heart_rate"].append(HRdata)  # append dictionary with HR and timestamp keys to list
-                print("Patient {0} exists in the database. Heart rate information with current time appended.".format(
-                    i["patient_id"]))
-                break
-            else:
-                print("Patient {0} already exists in the database. No new information added.".format(i["patient_id"]))
-                break
+    if i["patient_id"] == dictionary["patient_id"]:
+        # print("same patient exist in db")
+        if "heart_rate" in list(dictionary.keys()):
+            HRdata["HR"] = dictionary["heart_rate"]
+            HRdata["Time"] = datetime.now()
+            i["heart_rate"].append(HRdata)  # append dictionary with HR and timestamp keys to list
+            print("Patient {0} exists in the database. Heart rate information with current time appended.".format(
+                i["patient_id"]))
         else:
-             database.append(dictionary)
-             print("Patient {0}'s information was added to the database.".format(dictionary["patient_id"]))
+            print("Patient {0} already exists in the database. No new information added.".format(i["patient_id"]))
+    else:
+         database.append(dictionary)
+         print("Patient {0}'s information was added to the database.".format(dictionary["patient_id"]))
 
 @app.route("/api/new_patient", methods=["POST"])
 def post_new_patient():
@@ -117,14 +115,18 @@ def post_heart_rate():
         validate_heart_rate_request(patient)
     except ValidationError as inst:
         return jsonify({"Error message": inst.message}), 500
-
-    h = dict()
-    add_to_dictionary(h, "patient_id", parse(patient, "patient_id"))
-    add_to_dictionary(h, "heart_rate", parse(patient, "heart_rate"))
-    add_to_database(h, db)
-    print(db)
-    return jsonify(h), 200
-
+    for i in db:
+        if patient["patient_id"] != i["patient_id"]:
+            continue
+    if patient["patient_id"] == i["patient_id"]:
+        h = dict()
+        add_to_dictionary(h, "patient_id", parse(patient, "patient_id"))
+        add_to_dictionary(h, "heart_rate", parse(patient, "heart_rate"))
+        add_to_database(h, db)
+        print(db)
+        return jsonify(h), 200
+    else:
+        return "Patient ID does not exist. Post new patient first.", 400
 
 HEART_RATE_KEYS = [
     "patient_id",

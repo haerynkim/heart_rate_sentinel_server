@@ -7,7 +7,7 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-db = [{"patient_id":"0000"}] # initialize db as non-empty list
+db = [{"patient_id": "0000"}]  # initialize db as non-empty list
 
 
 def parse(dict, str):
@@ -48,21 +48,23 @@ def add_to_database(dictionary, database):
     global db
     HRdata = dict()
     for i in database:
+        if i["patient_id"] != dictionary["patient_id"]:
+            continue
         if i["patient_id"] == dictionary["patient_id"]:
-            if "heart_rate" not in list(dictionary.keys()):
-                print("Patient {0} already exists in the database. No new information added.".format(i["patient_id"]))
-                break
-            else:
+            # print("same patient exist in db")
+            if "heart_rate" in list(dictionary.keys()):
                 HRdata["HR"] = dictionary["heart_rate"]
                 HRdata["Time"] = datetime.now()
-                i["heart_rate"].append(HRdata) # append dictionary with HR and timestamp keys to list
+                i["heart_rate"].append(HRdata)  # append dictionary with HR and timestamp keys to list
                 print("Patient {0} exists in the database. Heart rate information with current time appended.".format(
                     i["patient_id"]))
                 break
+            else:
+                print("Patient {0} already exists in the database. No new information added.".format(i["patient_id"]))
+                break
         else:
-            database.append(dictionary)
-            print("Patient {0}'s information was added to the database.".format(dictionary["patient_id"]))
-            break
+             database.append(dictionary)
+             print("Patient {0}'s information was added to the database.".format(dictionary["patient_id"]))
 
 @app.route("/api/new_patient", methods=["POST"])
 def post_new_patient():
@@ -108,8 +110,9 @@ def validate_new_patient_request(patient_req):
             raise ValidationError("Key '{0}' not present in request".format(key))
 
 
-@app.route("/api/heart_rate")
+@app.route("/api/heart_rate", methods=["POST"])
 def post_heart_rate():
+    global db
     patient = request.get_json()
     try:
         validate_heart_rate_request(patient)
@@ -119,6 +122,8 @@ def post_heart_rate():
     h = dict()
     add_to_dictionary(h, "patient_id", parse(patient, "patient_id"))
     add_to_dictionary(h, "heart_rate", parse(patient, "heart_rate"))
+    add_to_database(h, db)
+    print(db)
     return jsonify(h), 200
 
 

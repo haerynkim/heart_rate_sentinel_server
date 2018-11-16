@@ -244,5 +244,37 @@ def get_hr_average(patient_id):
     else:
         return "Patient ID does not exist. Post new patient and heart rate info first.", 300
 
+@app.route("/api/heart_rate/interval_average", methods = ["POST"])
+def post_interval_avg():
+    global db
+    patient = request.get_json()
+    try:
+        validate_interval_avg_request(patient)
+    except ValidationError as inst:
+        return jsonify({"Error message": inst.message}), 500
+    for i in db:
+        if patient["patient_id"] != i["patient_id"]:
+            continue
+    if patient["patient_id"] == i["patient_id"]:
+        i = dict()
+        add_to_dictionary(i, "patient_id", parse(patient, "patient_id"))
+        add_to_dictionary(i, "heart_rate_average_since", parse(patient, "heart_rate_average_since"))
+        add_to_database(i, db)
+        print(db)
+        return jsonify(i), 200
+    else:
+        return "Patient ID does not exist. Post new patient and heart rate info first.", 300
+
+
+INT_AVG_KEYS = [
+    "patient_id",
+    "heart_rate_average_since"
+]
+
+def validate_interval_avg_request(patient_req):
+    for key in INT_AVG_KEYS:
+        if key not in patient_req.keys():
+            raise ValidationError("Key '{0}' not present in request".format(key))
+
 if __name__ == "__main__":
     app.run(host="127.0.0.1")  # IP needs swapped out if running on VM

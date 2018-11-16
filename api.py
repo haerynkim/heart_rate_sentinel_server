@@ -128,7 +128,7 @@ def post_heart_rate():
         print(db)
         return jsonify(h), 200
     else:
-        return "Patient ID does not exist. Post new patient first.", 400
+        return "Patient ID does not exist. Post new patient first.", 300
 
 
 HEART_RATE_KEYS = [

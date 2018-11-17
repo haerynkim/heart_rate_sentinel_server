@@ -12,13 +12,13 @@ def send_email(email, message):
     subject = "Warning: Tachycardic Patient Alert"
     content = Content("text/plain", message)
     mail = Mail(from_email, subject, to_email, content)
+    print("Sending email with following information: {0}".format(mail.get()))
     response = sg.client.mail.send.post(request_body=mail.get())
     print(response.status_code)
     print(response.body)
     print(response.headers)
 
-
 if __name__ == "__main__":
-    message = "Patient is tachycardic"
+    message = "Patient has tachycardia"
     email = "haerynk@gmail.com"
     send_email(email, message)

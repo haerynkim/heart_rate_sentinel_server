@@ -5,6 +5,9 @@
 from flask import Flask, jsonify, request
 from datetime import datetime
 from time import strftime
+import sendgrid
+import os
+from sendgrid.helpers.mail import *
 
 app = Flask(__name__)
 
@@ -108,6 +111,17 @@ def validate_new_patient_request(patient_req):
         if key not in patient_req.keys():
             raise ValidationError("Key '{0}' not present in request".format(key))
 
+def send_email(email, message):
+    sg = sendgrid.SendGridAPIClient(apikey=os.environ.get('SENDGRID_API_KEY'))
+    from_email = Email("heart_sentinel_server@example.com")
+    to_email = Email(email)
+    subject = "Warning: Tachycardic Patient Alert"
+    content = Content("text/plain", message)
+    mail = Mail(from_email, subject, to_email, content)
+    response = sg.client.mail.send.post(request_body=mail.get())
+    print(response.status_code)
+    print(response.body)
+    print(response.headers)
 
 @app.route("/api/heart_rate", methods=["POST"])
 def post_heart_rate():
@@ -123,9 +137,18 @@ def post_heart_rate():
     if patient["patient_id"] == i["patient_id"]:
         h = dict()
         add_to_dictionary(h, "patient_id", parse(patient, "patient_id"))
-        add_to_dictionary(h, "heart_rate", parse(patient, "heart_rate"))
+        HR = parse(patient, "heart_rate")
+        add_to_dictionary(h, "heart_rate", HR)
         add_to_database(h, db)
         print(db)
+        if is_tachycardic(i["user_age"], HR):
+            email = "haerynk@gmail.com"
+            current_time = datetime.now()
+            msg = "Patient {0} is tachycardic as of {1}.".format(i["patient_id"], current_time.strftime('%Y-%m-%d %H:%M:%S'))
+            #try:
+            send_email(email, msg)
+            # except:
+            #     return jsonify({"Error message: sendgrid key is not correctly set up"}), 500
         return jsonify(h), 200
     else:
         return "Patient ID does not exist. Post new patient first.", 300

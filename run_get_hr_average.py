@@ -4,7 +4,7 @@ def get_patient_average():
     """
     This returns all HR data registered under Patient ID.
     """
-    r = requests.get("http://127.0.0.1:5000/api/heart_rate/average/2")
+    r = requests.get("http://vcm-7474.vm.duke.edu:5000/api/heart_rate/average/2")
     print(r.text)
 
 

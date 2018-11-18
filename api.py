@@ -1,6 +1,6 @@
 # api.py
 # This code contains all the functions required to interact (e.g. get or post requests) with a server.
-# Modified Nov 13, 2018
+# Modified Nov 17, 2018
 # Written by Haeryn Kim
 from flask import Flask, jsonify, request
 from datetime import datetime
@@ -13,9 +13,9 @@ db = [{"patient_id": "0000"}]  # initialize db as non-empty list
 
 def parse(dict, str):
     """ Finds key associated with an input string in the input dictionary, and returns the key's value.
-    Tests if the key is a string, and gives an error statement.
-    Tests if key is in the dictionary.
-    Tests if dict is a jsonified dictionary.
+    Should test if the key is a string, and gives an error statement.
+    Should test if key is in the dictionary.
+    Should test if dict is a jsonified dictionary.
 
     :param dict: dictionary
     :param str: string
@@ -44,7 +44,7 @@ def add_to_database(dictionary, database):
 
     :param dict: dictionary
     :param database: list of dictionaries
-    :return:
+    :return: list
     """
     HRdata = dict()
     for i in database:
@@ -158,7 +158,6 @@ def get_status(patient_id):
         HRdic = i["heart_rate"][-1]  # returns dictionary of storing latest HR and time
         latestHR = HRdic["HR"]
         latesttime = HRdic["Time"]  # currently returns datetime.datetime(info) variable
-        print(type(latesttime))
         if is_tachycardic(i["user_age"], latestHR):
             return "Patient is tachycardic as of {0}.".format(latesttime.strftime('%Y-%m-%d %H:%M:%S'))
         else:
